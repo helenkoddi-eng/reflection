@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Интерактивная рефлексия | Просто для учителя</title>
+    <style>
+        /* =========================================
+           ОБЩИЕ СТИЛИ
+           ========================================= */
+        :root {
+            --primary: #8a2be2;
+            --panel: #fff;
+            --border: #ddd;
+            --tl-red: #ff4757;
+            --tl-yellow: #ffa502;
+            --tl-green: #2ed573;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100vw; height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: transparent; overflow: hidden;
+        }
+
+        /* =========================================
+           РЕДАКТОР
+           ========================================= */
+        #editor-container {
+            display: none; background: #f4f7f6; color: #222;
+            width: 100%; height: 100%; min-height: 100vh;
+            padding: 15px; box-sizing: border-box; overflow-y: auto;
+            align-items: center; flex-direction: column;
+        }
+        .panel-box {
+            max-width: 950px; width: 100%; background: var(--panel);
+            padding: 24px 30px; border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.10); margin: 0 auto;
+        }
+        h1 { text-align: center; margin: 0 0 22px; color: var(--primary); font-size: 26px; }
+        
+        .layout { display: flex; gap: 30px; flex-wrap: wrap; }
+        .controls { flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 15px; }
+        .preview { flex: 1.5; min-width: 350px; display: flex; flex-direction: column; align-items: center; }
+
+        .control-group { display: flex; flex-direction: column; gap: 7px;}
+        label { font-weight: 600; font-size: 14px;}
+        
+        select {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+            font-size: 15px; background: #fff; cursor: pointer; outline: none; font-family: inherit;
+        }
+        
+        input[type="color"] { width: 100%; height: 40px; border: none; border-radius: 8px; cursor: pointer; padding: 0;}
+        input[type="color"]::-webkit-color-swatch-wrapper { padding:0;}
+        input[type="color"]::-webkit-color-swatch { border: 1px solid var(--border); border-radius: 8px;}
+        
+        .checkbox-group { display: flex; align-items: center; gap: 10px;
+            background: #f9f9f9; padding: 12px; border-radius: 8px;
+            border: 1px solid var(--border); }
+        .checkbox-group input { width: 20px; height: 20px; cursor: pointer;}
+        
+        button.action-btn {
+            width: 100%; background: var(--primary); color: white; border: none;
+            padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
+            transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 9px; margin-top: 5px;
+        }
+        button.action-btn:hover { filter: brightness(1.1);}
+        
+        textarea {
+            width: 100%; min-height: 80px; padding: 10px; border-radius: 8px;
+            border: 1px solid var(--border); font-family: monospace;
+            font-size: 12px; background: #f4f7f6; resize: vertical; box-sizing: border-box;
+        }
+
+        /* Предпросмотр 16:9 */
+        .preview-box {
+            width: 100%; max-width: 550px; aspect-ratio: 16/9;
+            border: 2px dashed var(--border); border-radius: 12px;
+            background: #eee; overflow: hidden; position: relative;
+        }
+        .preview-box iframe { width: 100%; height: 100%; border: none;}
+        .preview-hint { font-size: 12px; color: #777; text-align: center; margin-top: 10px; }
+
+        footer {
+            margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);
+            text-align: center; font-size: 13px; color: #777; max-width: 950px; width: 100%;
+        }
+        .social-links { display: flex; gap: 20px; justify-content: center; margin-top: 8px;}
+        .social-links a { color: #777; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: 600; transition: 0.2s; }
+        .social-links a:hover { color: var(--primary);}
+        .social-links svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* =========================================
+           ВИДЖЕТ (УМНОЕ МАСШТАБИРОВАНИЕ CQI)
+           ========================================= */
+        #widget-container {
+            display: none; width: 100%; height: 100%; min-height: 100vh;
+            flex-direction: column; justify-content: center; align-items: center;
+            padding: 2vmin; box-sizing: border-box; background: transparent;
+            container-type: inline-size;
+        }
+
+        .widget-card {
+            display: flex; flex-direction: column;
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 0.4cqi solid rgba(255,255,255,0.4); border-radius: 3cqi;
+            padding: 3cqi; box-sizing: border-box;
+            box-shadow: 0 2cqi 6cqi rgba(0,0,0,0.1), inset 0 1cqi 2cqi rgba(255,255,255,0.3);
+            width: 100%; aspect-ratio: 16/9; max-height: 100%;
+            transition: box-shadow 0.3s, border-color 0.3s;
+        }
+
+        /* Компоновка внутри виджета */
+        .top-row { display: flex; gap: 3cqi; height: 50%; margin-bottom: 2cqi; }
+        .bottom-row { display: flex; flex-direction: column; height: 45%; }
+        
+        .section-box {
+            background: rgba(255,255,255,0.6); border-radius: 2cqi; padding: 2cqi;
+            box-shadow: 0 1cqi 2cqi rgba(0,0,0,0.05); flex: 1; display: flex; flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 3.5cqi; font-weight: 800; color: #333; text-align: center;
+            margin: 0 0 2cqi 0; text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+        }
+
+        /* 1. СВЕТОФОР */
+        .traffic-light-container { display: flex; align-items: center; justify-content: center; gap: 2cqi; flex: 1; }
+        .tl-body {
+            background: #2f3640; padding: 1.5cqi; border-radius: 2cqi;
+            display: flex; flex-direction: column; gap: 1cqi;
+            box-shadow: 0 1cqi 2cqi rgba(0,0,0,0.4), inset 0 0.5cqi 1cqi rgba(255,255,255,0.2);
+        }
+        .tl-circle {
+            width: 6cqi; height: 6cqi; border-radius: 50%; background: #555;
+            box-shadow: inset 0 0.5cqi 1cqi rgba(0,0,0,0.5); cursor: pointer;
+            transition: 0.3s; opacity: 0.3;
+        }
+        .tl-labels { display: flex; flex-direction: column; justify-content: space-around; height: 100%; gap: 1cqi;}
+        .tl-label {
+            font-size: 2.8cqi; font-weight: 600; color: #444; cursor: pointer;
+            transition: 0.2s; padding: 0.5cqi 1cqi; border-radius: 1cqi;
+            display: flex; align-items: center; min-height: 6cqi;
+        }
+        .tl-label:hover { background: rgba(0,0,0,0.05); }
+        
+        /* Активные состояния светофора */
+        .tl-circle.active-green { background: var(--tl-green); opacity: 1; box-shadow: 0 0 3cqi var(--tl-green), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
+        .tl-circle.active-yellow { background: var(--tl-yellow); opacity: 1; box-shadow: 0 0 3cqi var(--tl-yellow), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
+        .tl-circle.active-red { background: var(--tl-red); opacity: 1; box-shadow: 0 0 3cqi var(--tl-red), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
+
+        /* 2. СПИДОМЕТР */
+        .speedometer-container {
+            position: relative; flex: 1; display: flex; justify-content: center; align-items: flex-end;
+            padding-bottom: 2cqi; overflow: hidden;
+        }
+        .speed-arc { width: 90%; aspect-ratio: 2/1; position: relative; }
+        
+        .speed-svg { width: 100%; height: 100%; overflow: visible; }
+        
+        .emoji-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+        }
+        .emoji {
+            position: absolute; font-size: 4cqi; transform: translate(-50%, -50%);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: none;
+        }
+        
+        /* Стрелка */
+        .needle-wrapper {
+            position: absolute; bottom: 0; left: 50%; width: 100%; height: 100%;
+            transform-origin: bottom center; transform: translateX(-50%) rotate(0deg);
+            pointer-events: none;
+        }
+        .needle {
+            position: absolute; bottom: -1cqi; left: 50%; width: 2cqi; height: 110%;
+            background: #333; transform: translateX(-50%);
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+            pointer-events: auto; cursor: grab;
+            filter: drop-shadow(0 1cqi 1cqi rgba(0,0,0,0.3));
+        }
+        .needle:active { cursor: grabbing; }
+        .needle-base {
+            position: absolute; bottom: -2cqi; left: 50%; width: 4cqi; height: 4cqi;
+            background: #222; border-radius: 50%; transform: translateX(-50%);
+            box-shadow: 0 0.5cqi 1cqi rgba(0,0,0,0.5), inset 0 0.5cqi 0.5cqi rgba(255,255,255,0.4);
+            pointer-events: none;
+        }
+        /* Невидимая зона захвата (чтобы легко было тянуть) */
+        .drag-area {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;
+        }
+
+        /* 3. ВОПРОСЫ */
+        .questions-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2cqi; flex: 1; }
+        .q-card {
+            background: rgba(255,255,255,0.8); border-radius: 1.5cqi; padding: 2cqi;
+            box-shadow: 0 0.5cqi 1.5cqi rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center;
+            text-align: center; font-size: 2.8cqi; font-weight: 600; color: #444; border: 1px solid rgba(255,255,255,0.9);
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- =========================================
+     РЕЖИМ РЕДАКТОРА
+     ========================================= -->
+<div id="editor-container">
+    <div class="panel-box">
+        <h1>Интерактивная рефлексия</h1>
+        <div class="layout">
+            <div class="controls">
+                
+                <div class="control-group">
+                    <label>Язык интерфейса</label>
+                    <select id="langSelect">
+                        <option value="ru" selected>Русский (Russian)</option>
+                        <option value="en">Английский (English)</option>
+                        <option value="de">Немецкий (Deutsch)</option>
+                        <option value="fr">Французский (Français)</option>
+                        <option value="es">Испанский (Español)</option>
+                        <option value="it">Итальянский (Italiano)</option>
+                        <option value="zh">Китайский (中文)</option>
+                        <option value="ja">Японский (日本語)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Цвет подсветки (неон)</label>
+                    <input type="color" id="colorPicker" value="#4A90E2">
+                </div>
+                
+                <label class="checkbox-group">
+                    <input type="checkbox" id="neonToggle" checked>
+                    <span style="font-weight: 600; font-size: 14px;">Включить неоновое свечение</span>
+                </label>
+                
+                <button id="copyBtn" class="action-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Скопировать код
+                </button>
+                
+                <div class="control-group" style="margin-top: 5px;">
+                    <label>Код для вставки (Genially / Miro)</label>
+                    <textarea id="codeOutput" readonly></textarea>
+                </div>
+            </div>
+            
+            <div class="preview">
+                <label style="margin-bottom: 10px;">Предпросмотр (интерактивный)</label>
+                <div class="preview-box">
+                    <iframe id="previewFrame" allowtransparency="true"></iframe>
+                </div>
+                <p class="preview-hint">Кликайте на светофор и тяните стрелку спидометра!</p>
+            </div>
+        </div>
+
+        <footer>
+            <div>Автор: <b>Кóденцева Алёна</b>, блог <i>Просто для учителя | Easy for busy</i></div>
+            <div class="social-links">
+                <a href="https://t.me/easyfrbusy" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.12.03-1.96 1.25-5.54 3.67-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49 1-.76 3.91-1.7 6.51-2.82 7.79-3.35 3.7-1.53 4.47-1.8 4.97-1.81.11 0 .35.03.5.15.12.1.16.23.17.33-.02.04-.02.13-.03.22z"/></svg>
+                    Telegram
+                </a>
+                <a href="https://vk.com/easyfrbusy" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24"><path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14c5.6 0 6.93-1.33 6.93-6.93V8.93C22 3.33 20.67 2 15.07 2zM17.46 16.35h-1.56c-.66 0-.84-.52-1.98-1.64-1.03-1-1.5-1.15-1.75-1.15-.34 0-.44.1-.44.6v1.44c0 .46-.14.75-1.4.75-2.06 0-4.32-1.25-5.91-3.52-2.39-3.41-3.03-5.99-3.03-6.42 0-.21.08-.42.5-.42h1.56c.4 0 .56.18.73.66 1.09 3.23 2.65 5.56 3.36 5.56.25 0 .36-.1.36-.61V8.67c-.05-1.09-.61-1.18-.61-1.56 0-.19.16-.4.44-.4h2.51c.36 0 .48.18.48.58v3.42c0 .48.22.61.36.61.25 0 .54-.14 1.15-.75 1.18-1.28 1.95-3.32 1.95-3.32.12-.34.34-.58.75-.58h1.56c.54 0 .66.28.56.66-.23 1.06-1.55 2.85-2.18 3.66-.41.52-.52.68 0 1.2 1.55 1.53 2.16 2.5 2.16 3.5 0 .38-.28.66-.99.66z"/></svg>
+                    ВКонтакте
+                </a>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- =========================================
+     РЕЖИМ ВИДЖЕТА
+     ========================================= -->
+<div id="widget-container">
+    <div class="widget-card" id="widgetCard">
+        
+        <!-- ВЕРХНИЙ РЯД -->
+        <div class="top-row">
+            
+            <!-- Светофор -->
+            <div class="section-box">
+                <div class="section-title" id="txt-title1">Уровень понимания</div>
+                <div class="traffic-light-container">
+                    <div class="tl-body">
+                        <div class="tl-circle" id="tl-red" onclick="setLight('red')"></div>
+                        <div class="tl-circle" id="tl-yellow" onclick="setLight('yellow')"></div>
+                        <div class="tl-circle" id="tl-green" onclick="setLight('green')"></div>
+                    </div>
+                    <div class="tl-labels">
+                        <div class="tl-label" id="txt-tl-red" onclick="setLight('red')">Я ничего не понял(а)</div>
+                        <div class="tl-label" id="txt-tl-yellow" onclick="setLight('yellow')">Я не всё понял(а)</div>
+                        <div class="tl-label" id="txt-tl-green" onclick="setLight('green')">Я всё понял(а)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Спидометр -->
+            <div class="section-box">
+                <div class="section-title" id="txt-title2">Мои впечатления от урока</div>
+                <div class="speedometer-container">
+                    <div class="speed-arc" id="speedBox">
+                        <!-- Дуга спидометра -->
+                        <svg class="speed-svg" viewBox="0 0 200 100" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#ff4757" />
+                                    <stop offset="50%" stop-color="#ffa502" />
+                                    <stop offset="100%" stop-color="#2ed573" />
+                                </linearGradient>
+                            </defs>
+                            <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="url(#arcGrad)" stroke-width="20" stroke-linecap="round"/>
+                        </svg>
+                        
+                        <!-- Эмоджи -->
+                        <div class="emoji-container" id="emojiContainer"></div>
+                        
+                        <!-- Невидимая зона для кликов/тапов -->
+                        <div class="drag-area" id="dragArea"></div>
+                        
+                        <!-- Стрелка -->
+                        <div class="needle-wrapper" id="needleWrap">
+                            <div class="needle"></div>
+                        </div>
+                        <div class="needle-base"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- НИЖНИЙ РЯД (ВОПРОСЫ) -->
+        <div class="section-box bottom-row">
+            <div class="section-title" id="txt-title3">Давай обсудим</div>
+            <div class="questions-container">
+                <div class="q-card" id="txt-q1">Что ты сегодня смог(ла)?</div>
+                <div class="q-card" id="txt-q2">Какую грамматику ты сегодня использовал(а)?</div>
+                <div class="q-card" id="txt-q3">Какие новые слова ты узнал(а)?</div>
+                <div class="q-card" id="txt-q4">Что тебе понравилось, а что нет?</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// ==========================================
+// СЛОВАРЬ (8 ЯЗЫКОВ)
+// ==========================================
+const dict = {
+    "ru": { t1: "Уровень понимания", tlR: "Я ничего не понял(а)", tlY: "Я не всё понял(а)", tlG: "Я всё понял(а)", t2: "Мои впечатления от урока", t3: "Давай обсудим", q1: "Что ты сегодня смог(ла)?", q2: "Какую грамматику ты сегодня использовал(а)?", q3: "Какие новые слова ты узнал(а)?", q4: "Что тебе понравилось, а что нет?" },
+    "en": { t1: "Level of understanding", tlR: "I didn't understand anything", tlY: "I didn't understand everything", tlG: "I understood everything", t2: "My impressions of the lesson", t3: "Let's discuss", q1: "What could you do today?", q2: "What grammar did you use today?", q3: "What new words did you learn?", q4: "What did you like and dislike?" },
+    "de": { t1: "Verständnisniveau", tlR: "Ich habe nichts verstanden", tlY: "Ich habe nicht alles verstanden", tlG: "Ich habe alles verstanden", t2: "Meine Eindrücke vom Unterricht", t3: "Lass uns diskutieren", q1: "Was konntest du heute tun?", q2: "Welche Grammatik hast du heute verwendet?", q3: "Welche neuen Wörter hast du gelernt?", q4: "Was hat dir gefallen und was nicht?" },
+    "fr": { t1: "Niveau de compréhension", tlR: "Je n'ai rien compris", tlY: "Je n'ai pas tout compris", tlG: "J'ai tout compris", t2: "Mes impressions sur la leçon", t3: "Discutons", q1: "Qu'as-tu pu faire aujourd'hui ?", q2: "Quelle grammaire as-tu utilisée ?", q3: "Quels nouveaux mots as-tu appris ?", q4: "Qu'as-tu aimé et ne pas aimé ?" },
+    "es": { t1: "Nivel de comprensión", tlR: "No entendí nada", tlY: "No entendí todo", tlG: "Entendí todo", t2: "Mis impresiones de la lección", t3: "Hablemos", q1: "¿Qué pudiste hacer hoy?", q2: "¿Qué gramática usaste hoy?", q3: "¿Qué palabras nuevas aprendiste?", q4: "¿Qué te gustó y qué no?" },
+    "it": { t1: "Livello di comprensione", tlR: "Non ho capito niente", tlY: "Non ho capito tutto", tlG: "Ho capito tutto", t2: "Le mie impressioni sulla lezione", t3: "Discutiamo", q1: "Cosa sei riuscito a fare oggi?", q2: "Che grammatica hai usato oggi?", q3: "Quali nuove parole hai imparato?", q4: "Cosa ti è piaciuto e cosa no?" },
+    "zh": { t1: "理解程度", tlR: "我什么都没懂", tlY: "我没有全懂", tlG: "我全懂了", t2: "我对这节课的印象", t3: "我们来讨论吧", q1: "你今天能做什么？", q2: "你今天用了什么语法？", q3: "你学了什么新词？", q4: "你喜欢什么，不喜欢什么？" },
+    "ja": { t1: "理解度", tlR: "何も分かりませんでした", tlY: "全ては分かりませんでした", tlG: "全て分かりました", t2: "授業の感想", t3: "話し合いましょう", q1: "今日は何ができましたか？", q2: "今日はどの文法を使いましたか？", q3: "どんな新しい単語を学びましたか？", q4: "何が好きで、何が好きではありませんでしたか？" }
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const configParam = urlParams.get('config');
+
+// ==========================================
+// ЛОГИКА ВИДЖЕТА
+// ==========================================
+if (configParam) {
+    document.getElementById('widget-container').style.display = 'flex';
+    let config = { l: 'ru', c: '#4A90E2', n: true };
+    try { config = JSON.parse(decodeURIComponent(atob(configParam))); } catch(e){}
+
+    const card = document.getElementById('widgetCard');
+    if (config.n) {
+        card.style.boxShadow = `0 0 6cqi ${config.c}, inset 0 1cqi 3cqi rgba(255,255,255,0.4)`;
+        card.style.borderColor = config.c;
+    }
+
+    // Применение языка
+    const lang = dict[config.l] || dict['ru'];
+    document.getElementById('txt-title1').innerText = lang.t1;
+    document.getElementById('txt-tl-red').innerText = lang.tlR;
+    document.getElementById('txt-tl-yellow').innerText = lang.tlY;
+    document.getElementById('txt-tl-green').innerText = lang.tlG;
+    document.getElementById('txt-title2').innerText = lang.t2;
+    document.getElementById('txt-title3').innerText = lang.t3;
+    document.getElementById('txt-q1').innerText = lang.q1;
+    document.getElementById('txt-q2').innerText = lang.q2;
+    document.getElementById('txt-q3').innerText = lang.q3;
+    document.getElementById('txt-q4').innerText = lang.q4;
+
+    // --- ЛОГИКА СВЕТОФОРА ---
+    window.setLight = function(color) {
+        document.getElementById('tl-red').className = 'tl-circle';
+        document.getElementById('tl-yellow').className = 'tl-circle';
+        document.getElementById('tl-green').className = 'tl-circle';
+        document.getElementById('tl-' + color).classList.add('active-' + color);
+    };
+
+    // --- ЛОГИКА СПИДОМЕТРА ---
+    const emojis = ['😡', '🥺', '😴', '🙂', '🥰', '🤩', '🥳'];
+    const emContainer = document.getElementById('emojiContainer');
+    const needleWrap = document.getElementById('needleWrap');
+    const dragArea = document.getElementById('dragArea');
+    
+    // Расстановка эмоджи по дуге
+    emojis.forEach((em, i) => {
+        const div = document.createElement('div');
+        div.className = 'emoji'; div.innerText = em;
+        // Угол от 180 (слева) до 0 (справа)
+        const angle = Math.PI - (i / (emojis.length - 1)) * Math.PI;
+        // Радиус 85% (чтобы были над дугой)
+        const radiusX = 42; const radiusY = 85; 
+        const left = 50 + radiusX * Math.cos(angle);
+        const top = 100 - radiusY * Math.sin(angle);
+        
+        div.style.left = left + '%'; div.style.top = top + '%';
+        emContainer.appendChild(div);
+    });
+
+    let isDragging = false;
+    
+    function updateNeedle(clientX, clientY) {
+        const rect = dragArea.getBoundingClientRect();
+        // Находим координаты центра основания стрелки (низ по центру)
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height;
+        
+        // Вычисляем угол в радианах
+        const dy = clientY - centerY;
+        const dx = clientX - centerX;
+        let angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
+        
+        // Корректируем угол, чтобы 0 был вверх
+        angleDeg += 90;
+
+        // Ограничиваем вращение от -90 (лево) до +90 (право)
+        if (angleDeg < -90) angleDeg = -90;
+        if (angleDeg > 90) angleDeg = 90;
+
+        needleWrap.style.transform = `translateX(-50%) rotate(${angleDeg}deg)`;
+    }
+
+    dragArea.addEventListener('mousedown', (e) => { isDragging = true; updateNeedle(e.clientX, e.clientY); });
+    window.addEventListener('mousemove', (e) => { if (isDragging) updateNeedle(e.clientX, e.clientY); });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    dragArea.addEventListener('touchstart', (e) => { isDragging = true; updateNeedle(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+    window.addEventListener('touchmove', (e) => { if (isDragging) { e.preventDefault(); updateNeedle(e.touches[0].clientX, e.touches[0].clientY); } }, {passive: false});
+    window.addEventListener('touchend', () => { isDragging = false; });
+
+} 
+// ==========================================
+// ЛОГИКА РЕДАКТОРА
+// ==========================================
+else {
+    document.getElementById('editor-container').style.display = 'flex';
+    
+    const langSelect = document.getElementById('langSelect');
+    const colorPicker = document.getElementById('colorPicker');
+    const neonToggle = document.getElementById('neonToggle');
+    const previewFrame = document.getElementById('previewFrame');
+    const codeOutput = document.getElementById('codeOutput');
+    const copyBtn = document.getElementById('copyBtn');
+    
+    const baseUrl = window.location.href.split('?')[0];
+
+    function updateCode() {
+        const config = { l: langSelect.value, c: colorPicker.value, n: neonToggle.checked };
+        const hash = btoa(encodeURIComponent(JSON.stringify(config)));
+        previewFrame.src = `${baseUrl}?config=${hash}`;
+        
+        codeOutput.value = `<iframe src="${baseUrl}?config=${hash}" style="width: 100%; max-width: 1000px; aspect-ratio: 16/9; border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" frameborder="0" allowtransparency="true"></iframe>`;
+    }
+
+    [langSelect, colorPicker, neonToggle].forEach(el => el.addEventListener('input', updateCode));
+    
+    copyBtn.onclick = () => {
+        codeOutput.select(); document.execCommand('copy');
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Скопировано!';
+        copyBtn.style.background = '#27ae60';
+        setTimeout(() => { copyBtn.innerHTML = originalText; copyBtn.style.background = 'var(--primary)'; }, 2000);
+    };
+    
+    updateCode();
+}
+</script>
+</body>
+</html>
