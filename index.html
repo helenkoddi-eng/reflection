@@ -60,6 +60,8 @@
             border: 1px solid var(--border); }
         .checkbox-group input { width: 20px; height: 20px; cursor: pointer;}
         
+        .instruction-box { font-size: 12px; color: #d35400; background: #fff3e0; padding: 10px; border-radius: 8px; margin-top: -5px; line-height: 1.4; }
+
         button.action-btn {
             width: 100%; background: var(--primary); color: white; border: none;
             padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
@@ -238,6 +240,14 @@
                     <span style="font-weight: 600; font-size: 14px;">Включить неоновое свечение</span>
                 </label>
                 
+                <div class="instruction-box">
+                    Если вам нужно <b>НЕСКОЛЬКО</b> виджетов для рефлексии для доски Miro/Holst или слайда Genially и чтобы при этом светофор и спидометр "запоминали" свои позиции после перезагрузки страницы, то <b>НЕЛЬЗЯ просто скопировать и продублировать один и тот же виджет!</b> Вместо этого, чтобы все работало надежно:<br><br>
+                    1. Настройте внешний вид виджета (цвета, язык).<br>
+                    2. Нажмите «Скопировать код» &rarr; Вставьте код через iframe на доску (это будет Виджет №1, он запомнит свои позиции).<br>
+                    3. Вернитесь в редактор, <b>СНОВА</b> нажмите «Скопировать код» &rarr; Вставьте новый код через iframe на доску (это будет Виджет №2, он тоже запомнит свои позиции).<br>
+                    И так далее!
+                </div>
+                
                 <button id="copyBtn" class="action-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     Скопировать код
@@ -371,7 +381,7 @@ const configParam = urlParams.get('config');
 // ==========================================
 if (configParam) {
     document.getElementById('widget-container').style.display = 'flex';
-    let config = { l: 'ru', c: '#4A90E2', n: true };
+    let config = { l: 'ru', c: '#4A90E2', n: true, id: 'preview' };
     try { config = JSON.parse(decodeURIComponent(atob(configParam))); } catch(e){}
 
     const card = document.getElementById('widgetCard');
@@ -379,6 +389,13 @@ if (configParam) {
         card.style.boxShadow = `0 0 6cqi ${config.c}, inset 0 1cqi 3cqi rgba(255,255,255,0.4)`;
         card.style.borderColor = config.c;
     }
+
+    // Уникальный ключ для LocalStorage
+    const storageKey = 'reflection_' + (config.id || 'default');
+
+    // Переменные для хранения состояния
+    let currentLight = null;
+    let currentAngle = 0; // По умолчанию стрелка смотрит вверх (0 градусов)
 
     // Применение языка
     const lang = dict[config.l] || dict['ru'];
@@ -393,19 +410,48 @@ if (configParam) {
     document.getElementById('txt-q3').innerText = lang.q3;
     document.getElementById('txt-q4').innerText = lang.q4;
 
+    const emContainer = document.getElementById('emojiContainer');
+    const needleWrap = document.getElementById('needleWrap');
+    const dragArea = document.getElementById('dragArea');
+
+    // Восстановление сохраненного состояния (если есть)
+    try {
+        const savedData = localStorage.getItem(storageKey);
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            if (data.light) currentLight = data.light;
+            if (typeof data.angle === 'number') currentAngle = data.angle;
+        }
+    } catch(e) {}
+
+    // Функция сохранения состояния в память браузера
+    function saveState() {
+        try {
+            localStorage.setItem(storageKey, JSON.stringify({
+                light: currentLight,
+                angle: currentAngle
+            }));
+        } catch(e) {}
+    }
+
     // --- ЛОГИКА СВЕТОФОРА ---
     window.setLight = function(color) {
         document.getElementById('tl-red').className = 'tl-circle';
         document.getElementById('tl-yellow').className = 'tl-circle';
         document.getElementById('tl-green').className = 'tl-circle';
         document.getElementById('tl-' + color).classList.add('active-' + color);
+        
+        currentLight = color;
+        saveState(); // Сохраняем после клика
     };
+
+    // Применяем сохраненный цвет светофора при загрузке
+    if (currentLight) {
+        document.getElementById('tl-' + currentLight).classList.add('active-' + currentLight);
+    }
 
     // --- ЛОГИКА СПИДОМЕТРА ---
     const emojis = ['😡', '🥺', '😴', '🙂', '🥰', '🤩', '🥳'];
-    const emContainer = document.getElementById('emojiContainer');
-    const needleWrap = document.getElementById('needleWrap');
-    const dragArea = document.getElementById('dragArea');
     
     // Расстановка эмоджи по дуге
     emojis.forEach((em, i) => {
@@ -421,6 +467,9 @@ if (configParam) {
         div.style.left = left + '%'; div.style.top = top + '%';
         emContainer.appendChild(div);
     });
+
+    // Применяем сохраненный угол стрелки при загрузке
+    needleWrap.style.transform = `translateX(-50%) rotate(${currentAngle}deg)`;
 
     let isDragging = false;
     
@@ -442,7 +491,9 @@ if (configParam) {
         if (angleDeg < -90) angleDeg = -90;
         if (angleDeg > 90) angleDeg = 90;
 
+        currentAngle = angleDeg; // Обновляем глобальную переменную
         needleWrap.style.transform = `translateX(-50%) rotate(${angleDeg}deg)`;
+        saveState(); // Сохраняем во время движения
     }
 
     dragArea.addEventListener('mousedown', (e) => { isDragging = true; updateNeedle(e.clientX, e.clientY); });
@@ -469,8 +520,16 @@ else {
     
     const baseUrl = window.location.href.split('?')[0];
 
+    // Генерируем уникальный ID для текущей сессии копирования
+    let currentInstanceId = Date.now().toString(36);
+
     function updateCode() {
-        const config = { l: langSelect.value, c: colorPicker.value, n: neonToggle.checked };
+        const config = { 
+            l: langSelect.value, 
+            c: colorPicker.value, 
+            n: neonToggle.checked,
+            id: currentInstanceId // Вшиваем уникальный ID
+        };
         const hash = btoa(encodeURIComponent(JSON.stringify(config)));
         previewFrame.src = `${baseUrl}?config=${hash}`;
         
@@ -484,6 +543,11 @@ else {
         const originalText = copyBtn.innerHTML;
         copyBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Скопировано!';
         copyBtn.style.background = '#27ae60';
+        
+        // ВАЖНО: Сразу после копирования генерируем НОВЫЙ ID
+        currentInstanceId = Date.now().toString(36) + Math.random().toString(36).substring(2,5);
+        updateCode();
+
         setTimeout(() => { copyBtn.innerHTML = originalText; copyBtn.style.background = 'var(--primary)'; }, 2000);
     };
     
