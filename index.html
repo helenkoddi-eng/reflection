@@ -82,7 +82,7 @@
             background: #eee; overflow: hidden; position: relative;
             resize: both; /* Добавлено растягивание */
         }
-        .preview-box iframe { width: 100%; height: 100%; border: none;}
+        .preview-box iframe { width: 100%; height: 100%; border: none; display: block;}
         .preview-hint { font-size: 12px; color: #777; text-align: center; margin-top: 10px; }
 
         footer {
@@ -95,68 +95,120 @@
         .social-links svg { width: 18px; height: 18px; fill: currentColor; }
 
         /* =========================================
-           ВИДЖЕТ (УМНОЕ МАСШТАБИРОВАНИЕ CQI)
+           ВИДЖЕТ (ИДЕАЛЬНАЯ АДАПТАЦИЯ 16:9)
            ========================================= */
         #widget-container {
-            display: none; width: 100%; height: 100%; min-height: 100vh;
-            flex-direction: column; justify-content: center; align-items: center;
-            padding: 2vmin; box-sizing: border-box; background: transparent;
+            display: none; 
+            width: 100%; 
+            height: 100%; 
+            /* Убрано min-height: 100vh, чтобы не вылезало за рамки iframe */
+            min-height: 0;
+            flex-direction: column; 
+            justify-content: stretch; 
+            align-items: stretch;
+            padding: 0; 
+            box-sizing: border-box; 
+            background: transparent;
             container-type: inline-size;
+            overflow: hidden;
         }
 
         .widget-card {
-            display: flex; flex-direction: column;
-            background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 0.4cqi solid rgba(255,255,255,0.4); border-radius: 3cqi;
-            padding: 3cqi; box-sizing: border-box;
+            display: flex; 
+            flex-direction: column;
+            background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 0.4cqi solid rgba(255,255,255,0.4); 
+            border-radius: 2cqi;
+            padding: 1.5cqi; /* Сильно уменьшен паддинг самой карточки */
+            box-sizing: border-box;
             box-shadow: 0 2cqi 6cqi rgba(0,0,0,0.1), inset 0 1cqi 2cqi rgba(255,255,255,0.3);
-            width: 100%; aspect-ratio: 16/9; max-height: 100%;
+            width: 100%; 
+            height: 100%; /* Вместо aspect-ratio, карточка просто заполняет iframe 16:9 */
             transition: box-shadow 0.3s, border-color 0.3s;
+            overflow: hidden;
         }
 
         /* Компоновка внутри виджета */
-        .top-row { display: flex; gap: 3cqi; height: 50%; margin-bottom: 2cqi; }
-        .bottom-row { display: flex; flex-direction: column; height: 45%; }
+        .top-row { 
+            display: flex; 
+            gap: 1.5cqi; 
+            flex: 1.2; /* Пропорции вместо жестких % */
+            min-height: 0;
+            margin-bottom: 1.5cqi; 
+        }
+        .bottom-row { 
+            display: flex; 
+            flex-direction: column; 
+            flex: 0.8; 
+            min-height: 0;
+        }
         
         .section-box {
-            background: rgba(255,255,255,0.6); border-radius: 2cqi; padding: 2cqi;
-            box-shadow: 0 1cqi 2cqi rgba(0,0,0,0.05); flex: 1; display: flex; flex-direction: column;
+            background: rgba(255,255,255,0.6); 
+            border-radius: 1.5cqi; 
+            padding: 1.5cqi; /* Уменьшены отступы внутри белых блоков */
+            box-shadow: 0 1cqi 2cqi rgba(0,0,0,0.05); 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column;
+            min-height: 0;
+            min-width: 0;
+            overflow: hidden;
         }
         
         .section-title {
-            font-size: 3.5cqi; font-weight: 800; color: #333; text-align: center;
-            margin: 0 0 2cqi 0; text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+            font-size: 2.5cqi; /* Уменьшен шрифт заголовков */
+            font-weight: 800; 
+            color: #333; 
+            text-align: center;
+            margin: 0 0 1cqi 0; /* Уменьшен отступ под заголовком */
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+            line-height: 1.1;
         }
 
         /* 1. СВЕТОФОР */
-        .traffic-light-container { display: flex; align-items: center; justify-content: center; gap: 2cqi; flex: 1; }
+        .traffic-light-container { 
+            display: flex; align-items: center; justify-content: center; gap: 1.5cqi; flex: 1; min-height: 0;
+        }
         .tl-body {
-            background: #2f3640; padding: 1.5cqi; border-radius: 2cqi;
-            display: flex; flex-direction: column; gap: 1cqi;
+            background: #2f3640; 
+            padding: 1cqi; /* Меньше отступ у самого светофора */
+            border-radius: 2cqi;
+            display: flex; flex-direction: column; gap: 0.5cqi;
             box-shadow: 0 1cqi 2cqi rgba(0,0,0,0.4), inset 0 0.5cqi 1cqi rgba(255,255,255,0.2);
         }
         .tl-circle {
-            width: 6cqi; height: 6cqi; border-radius: 50%; background: #555;
+            width: 5cqi; /* Кружки стали меньше */
+            height: 5cqi; 
+            border-radius: 50%; background: #555;
             box-shadow: inset 0 0.5cqi 1cqi rgba(0,0,0,0.5); cursor: pointer;
             transition: 0.3s; opacity: 0.3;
+            flex-shrink: 0;
         }
-        .tl-labels { display: flex; flex-direction: column; justify-content: space-around; height: 100%; gap: 1cqi;}
+        .tl-labels { 
+            display: flex; flex-direction: column; justify-content: space-around; height: 100%; gap: 0.5cqi; min-width: 0;
+        }
         .tl-label {
-            font-size: 2.8cqi; font-weight: 600; color: #444; cursor: pointer;
-            transition: 0.2s; padding: 0.5cqi 1cqi; border-radius: 1cqi;
-            display: flex; align-items: center; min-height: 6cqi;
+            font-size: 2.2cqi; /* Шрифт подписей светофора */
+            font-weight: 600; color: #444; cursor: pointer;
+            transition: 0.2s; padding: 0.5cqi; border-radius: 1cqi;
+            display: flex; align-items: center; min-height: 4.5cqi;
+            line-height: 1.1;
         }
         .tl-label:hover { background: rgba(0,0,0,0.05); }
         
         /* Активные состояния светофора */
-        .tl-circle.active-green { background: var(--tl-green); opacity: 1; box-shadow: 0 0 3cqi var(--tl-green), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
-        .tl-circle.active-yellow { background: var(--tl-yellow); opacity: 1; box-shadow: 0 0 3cqi var(--tl-yellow), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
-        .tl-circle.active-red { background: var(--tl-red); opacity: 1; box-shadow: 0 0 3cqi var(--tl-red), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
+        .tl-circle.active-green { background: var(--tl-green); opacity: 1; box-shadow: 0 0 2cqi var(--tl-green), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
+        .tl-circle.active-yellow { background: var(--tl-yellow); opacity: 1; box-shadow: 0 0 2cqi var(--tl-yellow), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
+        .tl-circle.active-red { background: var(--tl-red); opacity: 1; box-shadow: 0 0 2cqi var(--tl-red), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
 
         /* 2. СПИДОМЕТР */
         .speedometer-container {
             position: relative; flex: 1; display: flex; justify-content: center; align-items: flex-end;
-            padding-bottom: 2cqi; overflow: hidden;
+            padding-bottom: 0; /* Убрали лишний отступ снизу */
+            overflow: hidden;
+            min-height: 0;
         }
         .speed-arc { width: 90%; aspect-ratio: 2/1; position: relative; }
         
@@ -166,7 +218,9 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
         }
         .emoji {
-            position: absolute; font-size: 4cqi; transform: translate(-50%, -50%);
+            position: absolute; 
+            font-size: 3.5cqi; /* Эмодзи чуть меньше */
+            transform: translate(-50%, -50%);
             text-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: none;
         }
         
@@ -190,17 +244,29 @@
             box-shadow: 0 0.5cqi 1cqi rgba(0,0,0,0.5), inset 0 0.5cqi 0.5cqi rgba(255,255,255,0.4);
             pointer-events: none;
         }
-        /* Невидимая зона захвата (чтобы легко было тянуть) */
+        /* Невидимая зона захвата */
         .drag-area {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;
         }
 
         /* 3. ВОПРОСЫ */
-        .questions-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2cqi; flex: 1; }
+        .questions-container { 
+            display: grid; grid-template-columns: 1fr 1fr; 
+            gap: 1.5cqi; /* Уменьшен отступ между карточками */
+            flex: 1; 
+            min-height: 0;
+        }
         .q-card {
-            background: rgba(255,255,255,0.8); border-radius: 1.5cqi; padding: 2cqi;
-            box-shadow: 0 0.5cqi 1.5cqi rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center;
-            text-align: center; font-size: 2.8cqi; font-weight: 600; color: #444; border: 1px solid rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.8); 
+            border-radius: 1cqi; 
+            padding: 1cqi; /* Уменьшен отступ внутри карточек с вопросами */
+            box-shadow: 0 0.5cqi 1.5cqi rgba(0,0,0,0.08); 
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; 
+            font-size: 2.2cqi; /* Уменьшен шрифт вопросов */
+            font-weight: 600; color: #444; border: 1px solid rgba(255,255,255,0.9);
+            line-height: 1.15;
+            min-height: 0; min-width: 0;
         }
 
     </style>
