@@ -80,7 +80,7 @@
             width: 100%; max-width: 550px; aspect-ratio: 16/9;
             border: 2px dashed var(--border); border-radius: 12px;
             background: #eee; overflow: hidden; position: relative;
-            resize: both;
+            resize: both; /* Добавлено растягивание */
         }
         .preview-box iframe { width: 100%; height: 100%; border: none;}
         .preview-hint { font-size: 12px; color: #777; text-align: center; margin-top: 10px; }
@@ -95,143 +95,68 @@
         .social-links svg { width: 18px; height: 18px; fill: currentColor; }
 
         /* =========================================
-           ВИДЖЕТ (АДАПТАЦИЯ ПОД ВСТРАИВАНИЕ 16:9)
+           ВИДЖЕТ (УМНОЕ МАСШТАБИРОВАНИЕ CQI)
            ========================================= */
         #widget-container {
-            display: none;
-            width: 100%;
-            height: 100%;
-            min-height: 0;
-            flex-direction: column;
-            justify-content: stretch;
-            align-items: stretch;
-            padding: 0;
-            box-sizing: border-box;
-            background: transparent;
+            display: none; width: 100%; height: 100%; min-height: 100vh;
+            flex-direction: column; justify-content: center; align-items: center;
+            padding: 2vmin; box-sizing: border-box; background: transparent;
             container-type: inline-size;
-            overflow: hidden;
         }
 
         .widget-card {
-            display: flex;
-            flex-direction: column;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 0.4cqi solid rgba(255,255,255,0.4);
-            border-radius: 3cqi;
-            padding: 2.2cqi;
-            box-sizing: border-box;
+            display: flex; flex-direction: column;
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 0.4cqi solid rgba(255,255,255,0.4); border-radius: 3cqi;
+            padding: 3cqi; box-sizing: border-box;
             box-shadow: 0 2cqi 6cqi rgba(0,0,0,0.1), inset 0 1cqi 2cqi rgba(255,255,255,0.3);
-            width: 100%;
-            height: 100%;
+            width: 100%; aspect-ratio: 16/9; max-height: 100%;
             transition: box-shadow 0.3s, border-color 0.3s;
-            overflow: hidden;
         }
 
-        .top-row {
-            display: flex;
-            gap: 2cqi;
-            flex: 1 1 52%;
-            min-height: 0;
-            margin-bottom: 1.5cqi;
-        }
-
-        .bottom-row {
-            display: flex;
-            flex-direction: column;
-            flex: 1 1 48%;
-            min-height: 0;
-        }
+        /* Компоновка внутри виджета */
+        .top-row { display: flex; gap: 3cqi; height: 50%; margin-bottom: 2cqi; }
+        .bottom-row { display: flex; flex-direction: column; height: 45%; }
         
         .section-box {
-            background: rgba(255,255,255,0.6);
-            border-radius: 2cqi;
-            padding: 1.6cqi;
-            box-shadow: 0 1cqi 2cqi rgba(0,0,0,0.05);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            min-height: 0;
-            overflow: hidden;
+            background: rgba(255,255,255,0.6); border-radius: 2cqi; padding: 2cqi;
+            box-shadow: 0 1cqi 2cqi rgba(0,0,0,0.05); flex: 1; display: flex; flex-direction: column;
         }
         
         .section-title {
-            font-size: 3.1cqi;
-            font-weight: 800;
-            color: #333;
-            text-align: center;
-            margin: 0 0 1.2cqi 0;
-            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
-            line-height: 1.1;
+            font-size: 3.5cqi; font-weight: 800; color: #333; text-align: center;
+            margin: 0 0 2cqi 0; text-shadow: 0 1px 2px rgba(255,255,255,0.8);
         }
 
         /* 1. СВЕТОФОР */
-        .traffic-light-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2cqi;
-            flex: 1;
-            min-height: 0;
-        }
+        .traffic-light-container { display: flex; align-items: center; justify-content: center; gap: 2cqi; flex: 1; }
         .tl-body {
-            background: #2f3640;
-            padding: 1.5cqi;
-            border-radius: 2cqi;
-            display: flex;
-            flex-direction: column;
-            gap: 1cqi;
+            background: #2f3640; padding: 1.5cqi; border-radius: 2cqi;
+            display: flex; flex-direction: column; gap: 1cqi;
             box-shadow: 0 1cqi 2cqi rgba(0,0,0,0.4), inset 0 0.5cqi 1cqi rgba(255,255,255,0.2);
         }
         .tl-circle {
-            width: 6cqi;
-            height: 6cqi;
-            border-radius: 50%;
-            background: #555;
-            box-shadow: inset 0 0.5cqi 1cqi rgba(0,0,0,0.5);
-            cursor: pointer;
-            transition: 0.3s;
-            opacity: 0.3;
+            width: 6cqi; height: 6cqi; border-radius: 50%; background: #555;
+            box-shadow: inset 0 0.5cqi 1cqi rgba(0,0,0,0.5); cursor: pointer;
+            transition: 0.3s; opacity: 0.3;
         }
-        .tl-labels {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            height: 100%;
-            gap: 1cqi;
-            min-width: 0;
-        }
+        .tl-labels { display: flex; flex-direction: column; justify-content: space-around; height: 100%; gap: 1cqi;}
         .tl-label {
-            font-size: 2.35cqi;
-            font-weight: 600;
-            color: #444;
-            cursor: pointer;
-            transition: 0.2s;
-            padding: 0.4cqi 0.8cqi;
-            border-radius: 1cqi;
-            display: flex;
-            align-items: center;
-            min-height: 5.2cqi;
-            line-height: 1.15;
+            font-size: 2.8cqi; font-weight: 600; color: #444; cursor: pointer;
+            transition: 0.2s; padding: 0.5cqi 1cqi; border-radius: 1cqi;
+            display: flex; align-items: center; min-height: 6cqi;
         }
         .tl-label:hover { background: rgba(0,0,0,0.05); }
         
+        /* Активные состояния светофора */
         .tl-circle.active-green { background: var(--tl-green); opacity: 1; box-shadow: 0 0 3cqi var(--tl-green), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
         .tl-circle.active-yellow { background: var(--tl-yellow); opacity: 1; box-shadow: 0 0 3cqi var(--tl-yellow), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
         .tl-circle.active-red { background: var(--tl-red); opacity: 1; box-shadow: 0 0 3cqi var(--tl-red), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
 
         /* 2. СПИДОМЕТР */
         .speedometer-container {
-            position: relative;
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            padding-bottom: 1cqi;
-            overflow: hidden;
-            min-height: 0;
+            position: relative; flex: 1; display: flex; justify-content: center; align-items: flex-end;
+            padding-bottom: 2cqi; overflow: hidden;
         }
         .speed-arc { width: 90%; aspect-ratio: 2/1; position: relative; }
         
@@ -245,6 +170,7 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: none;
         }
         
+        /* Стрелка */
         .needle-wrapper {
             position: absolute; bottom: 0; left: 50%; width: 100%; height: 100%;
             transform-origin: bottom center; transform: translateX(-50%) rotate(0deg);
@@ -264,34 +190,17 @@
             box-shadow: 0 0.5cqi 1cqi rgba(0,0,0,0.5), inset 0 0.5cqi 0.5cqi rgba(255,255,255,0.4);
             pointer-events: none;
         }
+        /* Невидимая зона захвата (чтобы легко было тянуть) */
         .drag-area {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;
         }
 
         /* 3. ВОПРОСЫ */
-        .questions-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2cqi;
-            flex: 1;
-            min-height: 0;
-        }
+        .questions-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2cqi; flex: 1; }
         .q-card {
-            background: rgba(255,255,255,0.8);
-            border-radius: 1.5cqi;
-            padding: 1.4cqi;
-            box-shadow: 0 0.5cqi 1.5cqi rgba(0,0,0,0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 2.35cqi;
-            font-weight: 600;
-            color: #444;
-            border: 1px solid rgba(255,255,255,0.9);
-            line-height: 1.15;
-            min-width: 0;
-            min-height: 0;
+            background: rgba(255,255,255,0.8); border-radius: 1.5cqi; padding: 2cqi;
+            box-shadow: 0 0.5cqi 1.5cqi rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center;
+            text-align: center; font-size: 2.8cqi; font-weight: 600; color: #444; border: 1px solid rgba(255,255,255,0.9);
         }
 
     </style>
@@ -406,6 +315,7 @@
                 <div class="section-title" id="txt-title2">Мои впечатления от урока</div>
                 <div class="speedometer-container">
                     <div class="speed-arc" id="speedBox">
+                        <!-- Дуга спидометра -->
                         <svg class="speed-svg" viewBox="0 0 200 100" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -417,9 +327,13 @@
                             <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="url(#arcGrad)" stroke-width="20" stroke-linecap="round"/>
                         </svg>
                         
+                        <!-- Эмоджи -->
                         <div class="emoji-container" id="emojiContainer"></div>
+                        
+                        <!-- Невидимая зона для кликов/тапов -->
                         <div class="drag-area" id="dragArea"></div>
                         
+                        <!-- Стрелка -->
                         <div class="needle-wrapper" id="needleWrap">
                             <div class="needle"></div>
                         </div>
@@ -476,11 +390,14 @@ if (configParam) {
         card.style.borderColor = config.c;
     }
 
+    // Уникальный ключ для LocalStorage
     const storageKey = 'reflection_' + (config.id || 'default');
 
+    // Переменные для хранения состояния
     let currentLight = null;
-    let currentAngle = 0;
+    let currentAngle = 0; // По умолчанию стрелка смотрит вверх (0 градусов)
 
+    // Применение языка
     const lang = dict[config.l] || dict['ru'];
     document.getElementById('txt-title1').innerText = lang.t1;
     document.getElementById('txt-tl-red').innerText = lang.tlR;
@@ -497,6 +414,7 @@ if (configParam) {
     const needleWrap = document.getElementById('needleWrap');
     const dragArea = document.getElementById('dragArea');
 
+    // Восстановление сохраненного состояния (если есть)
     try {
         const savedData = localStorage.getItem(storageKey);
         if (savedData) {
@@ -506,6 +424,7 @@ if (configParam) {
         }
     } catch(e) {}
 
+    // Функция сохранения состояния в память браузера
     function saveState() {
         try {
             localStorage.setItem(storageKey, JSON.stringify({
@@ -515,6 +434,7 @@ if (configParam) {
         } catch(e) {}
     }
 
+    // --- ЛОГИКА СВЕТОФОРА ---
     window.setLight = function(color) {
         document.getElementById('tl-red').className = 'tl-circle';
         document.getElementById('tl-yellow').className = 'tl-circle';
@@ -522,19 +442,24 @@ if (configParam) {
         document.getElementById('tl-' + color).classList.add('active-' + color);
         
         currentLight = color;
-        saveState();
+        saveState(); // Сохраняем после клика
     };
 
+    // Применяем сохраненный цвет светофора при загрузке
     if (currentLight) {
         document.getElementById('tl-' + currentLight).classList.add('active-' + currentLight);
     }
 
+    // --- ЛОГИКА СПИДОМЕТРА ---
     const emojis = ['😡', '🥺', '😴', '🙂', '🥰', '🤩', '🥳'];
     
+    // Расстановка эмоджи по дуге
     emojis.forEach((em, i) => {
         const div = document.createElement('div');
         div.className = 'emoji'; div.innerText = em;
+        // Угол от 180 (слева) до 0 (справа)
         const angle = Math.PI - (i / (emojis.length - 1)) * Math.PI;
+        // Радиус 85% (чтобы были над дугой)
         const radiusX = 42; const radiusY = 85; 
         const left = 50 + radiusX * Math.cos(angle);
         const top = 100 - radiusY * Math.sin(angle);
@@ -543,27 +468,32 @@ if (configParam) {
         emContainer.appendChild(div);
     });
 
+    // Применяем сохраненный угол стрелки при загрузке
     needleWrap.style.transform = `translateX(-50%) rotate(${currentAngle}deg)`;
 
     let isDragging = false;
     
     function updateNeedle(clientX, clientY) {
         const rect = dragArea.getBoundingClientRect();
+        // Находим координаты центра основания стрелки (низ по центру)
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height;
         
+        // Вычисляем угол в радианах
         const dy = clientY - centerY;
         const dx = clientX - centerX;
         let angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
         
+        // Корректируем угол, чтобы 0 был вверх
         angleDeg += 90;
 
+        // Ограничиваем вращение от -90 (лево) до +90 (право)
         if (angleDeg < -90) angleDeg = -90;
         if (angleDeg > 90) angleDeg = 90;
 
-        currentAngle = angleDeg;
+        currentAngle = angleDeg; // Обновляем глобальную переменную
         needleWrap.style.transform = `translateX(-50%) rotate(${angleDeg}deg)`;
-        saveState();
+        saveState(); // Сохраняем во время движения
     }
 
     dragArea.addEventListener('mousedown', (e) => { isDragging = true; updateNeedle(e.clientX, e.clientY); });
@@ -590,6 +520,7 @@ else {
     
     const baseUrl = window.location.href.split('?')[0];
 
+    // Генерируем уникальный ID для текущей сессии копирования
     let currentInstanceId = Date.now().toString(36);
 
     function updateCode() {
@@ -597,7 +528,7 @@ else {
             l: langSelect.value, 
             c: colorPicker.value, 
             n: neonToggle.checked,
-            id: currentInstanceId
+            id: currentInstanceId // Вшиваем уникальный ID
         };
         const hash = btoa(encodeURIComponent(JSON.stringify(config)));
         previewFrame.src = `${baseUrl}?config=${hash}`;
@@ -613,6 +544,7 @@ else {
         copyBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Скопировано!';
         copyBtn.style.background = '#27ae60';
         
+        // ВАЖНО: Сразу после копирования генерируем НОВЫЙ ID
         currentInstanceId = Date.now().toString(36) + Math.random().toString(36).substring(2,5);
         updateCode();
 
