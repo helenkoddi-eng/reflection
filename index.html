@@ -80,7 +80,7 @@
             width: 100%; max-width: 550px; aspect-ratio: 16/9;
             border: 2px dashed var(--border); border-radius: 12px;
             background: #eee; overflow: hidden; position: relative;
-            resize: both; /* Добавлено растягивание */
+            resize: both; 
         }
         .preview-box iframe { width: 100%; height: 100%; border: none; display: block;}
         .preview-hint { font-size: 12px; color: #777; text-align: center; margin-top: 10px; }
@@ -101,7 +101,6 @@
             display: none; 
             width: 100%; 
             height: 100%; 
-            /* Убрано min-height: 100vh, чтобы не вылезало за рамки iframe */
             min-height: 0;
             flex-direction: column; 
             justify-content: stretch; 
@@ -120,11 +119,11 @@
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border: 0.4cqi solid rgba(255,255,255,0.4); 
             border-radius: 2cqi;
-            padding: 1.5cqi; /* Сильно уменьшен паддинг самой карточки */
+            padding: 1.5cqi; 
             box-sizing: border-box;
             box-shadow: 0 2cqi 6cqi rgba(0,0,0,0.1), inset 0 1cqi 2cqi rgba(255,255,255,0.3);
             width: 100%; 
-            height: 100%; /* Вместо aspect-ratio, карточка просто заполняет iframe 16:9 */
+            height: 100%; 
             transition: box-shadow 0.3s, border-color 0.3s;
             overflow: hidden;
         }
@@ -133,21 +132,21 @@
         .top-row { 
             display: flex; 
             gap: 1.5cqi; 
-            flex: 1.2; /* Пропорции вместо жестких % */
+            flex: 1.3; /* Дали еще чуть больше места верхнему ряду */
             min-height: 0;
             margin-bottom: 1.5cqi; 
         }
         .bottom-row { 
             display: flex; 
             flex-direction: column; 
-            flex: 0.8; 
+            flex: 0.7; /* Чуть уменьшили нижний */
             min-height: 0;
         }
         
         .section-box {
             background: rgba(255,255,255,0.6); 
             border-radius: 1.5cqi; 
-            padding: 1.5cqi; /* Уменьшены отступы внутри белых блоков */
+            padding: 1.2cqi; /* Еще немного уплотнили внешние отступы внутри белых блоков */
             box-shadow: 0 1cqi 2cqi rgba(0,0,0,0.05); 
             flex: 1; 
             display: flex; 
@@ -158,11 +157,11 @@
         }
         
         .section-title {
-            font-size: 2.5cqi; /* Уменьшен шрифт заголовков */
+            font-size: 2.5cqi; 
             font-weight: 800; 
             color: #333; 
             text-align: center;
-            margin: 0 0 1cqi 0; /* Уменьшен отступ под заголовком */
+            margin: 0 0 0.8cqi 0; 
             text-shadow: 0 1px 2px rgba(255,255,255,0.8);
             line-height: 1.1;
         }
@@ -173,14 +172,14 @@
         }
         .tl-body {
             background: #2f3640; 
-            padding: 1cqi; /* Меньше отступ у самого светофора */
+            padding: 1cqi; 
             border-radius: 2cqi;
             display: flex; flex-direction: column; gap: 0.5cqi;
             box-shadow: 0 1cqi 2cqi rgba(0,0,0,0.4), inset 0 0.5cqi 1cqi rgba(255,255,255,0.2);
         }
         .tl-circle {
-            width: 5cqi; /* Кружки стали меньше */
-            height: 5cqi; 
+            width: 4.8cqi; 
+            height: 4.8cqi; 
             border-radius: 50%; background: #555;
             box-shadow: inset 0 0.5cqi 1cqi rgba(0,0,0,0.5); cursor: pointer;
             transition: 0.3s; opacity: 0.3;
@@ -190,7 +189,7 @@
             display: flex; flex-direction: column; justify-content: space-around; height: 100%; gap: 0.5cqi; min-width: 0;
         }
         .tl-label {
-            font-size: 2.2cqi; /* Шрифт подписей светофора */
+            font-size: 2.2cqi; 
             font-weight: 600; color: #444; cursor: pointer;
             transition: 0.2s; padding: 0.5cqi; border-radius: 1cqi;
             display: flex; align-items: center; min-height: 4.5cqi;
@@ -198,7 +197,6 @@
         }
         .tl-label:hover { background: rgba(0,0,0,0.05); }
         
-        /* Активные состояния светофора */
         .tl-circle.active-green { background: var(--tl-green); opacity: 1; box-shadow: 0 0 2cqi var(--tl-green), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
         .tl-circle.active-yellow { background: var(--tl-yellow); opacity: 1; box-shadow: 0 0 2cqi var(--tl-yellow), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
         .tl-circle.active-red { background: var(--tl-red); opacity: 1; box-shadow: 0 0 2cqi var(--tl-red), inset 0 0.5cqi 1cqi rgba(255,255,255,0.5); }
@@ -206,11 +204,15 @@
         /* 2. СПИДОМЕТР */
         .speedometer-container {
             position: relative; flex: 1; display: flex; justify-content: center; align-items: flex-end;
-            padding-bottom: 0; /* Убрали лишний отступ снизу */
-            overflow: hidden;
+            padding-bottom: 1.5cqi; /* <--- Защита от обрезания снизу */
+            overflow: visible;
             min-height: 0;
         }
-        .speed-arc { width: 90%; aspect-ratio: 2/1; position: relative; }
+        .speed-arc { 
+            width: 82%; /* Сузили дугу, чтобы боковые смайлы не лезли на края */
+            aspect-ratio: 2/1; position: relative; 
+            margin-bottom: 1.5cqi; /* <--- Приподняли дугу над дном контейнера */
+        }
         
         .speed-svg { width: 100%; height: 100%; overflow: visible; }
         
@@ -219,7 +221,7 @@
         }
         .emoji {
             position: absolute; 
-            font-size: 3.5cqi; /* Эмодзи чуть меньше */
+            font-size: 3.5cqi; 
             transform: translate(-50%, -50%);
             text-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: none;
         }
@@ -244,7 +246,6 @@
             box-shadow: 0 0.5cqi 1cqi rgba(0,0,0,0.5), inset 0 0.5cqi 0.5cqi rgba(255,255,255,0.4);
             pointer-events: none;
         }
-        /* Невидимая зона захвата */
         .drag-area {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;
         }
@@ -252,18 +253,18 @@
         /* 3. ВОПРОСЫ */
         .questions-container { 
             display: grid; grid-template-columns: 1fr 1fr; 
-            gap: 1.5cqi; /* Уменьшен отступ между карточками */
+            gap: 1.5cqi; 
             flex: 1; 
             min-height: 0;
         }
         .q-card {
             background: rgba(255,255,255,0.8); 
             border-radius: 1cqi; 
-            padding: 1cqi; /* Уменьшен отступ внутри карточек с вопросами */
+            padding: 1cqi; 
             box-shadow: 0 0.5cqi 1.5cqi rgba(0,0,0,0.08); 
             display: flex; align-items: center; justify-content: center;
             text-align: center; 
-            font-size: 2.2cqi; /* Уменьшен шрифт вопросов */
+            font-size: 2.2cqi; 
             font-weight: 600; color: #444; border: 1px solid rgba(255,255,255,0.9);
             line-height: 1.15;
             min-height: 0; min-width: 0;
@@ -525,8 +526,9 @@ if (configParam) {
         div.className = 'emoji'; div.innerText = em;
         // Угол от 180 (слева) до 0 (справа)
         const angle = Math.PI - (i / (emojis.length - 1)) * Math.PI;
-        // Радиус 85% (чтобы были над дугой)
-        const radiusX = 42; const radiusY = 85; 
+        
+        // Подкорректировали радиус X, так как дуга стала у́же
+        const radiusX = 45; const radiusY = 90; 
         const left = 50 + radiusX * Math.cos(angle);
         const top = 100 - radiusY * Math.sin(angle);
         
